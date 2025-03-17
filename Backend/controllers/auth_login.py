@@ -58,25 +58,3 @@ class AuthLogin:
                 return False, None, None, "Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản và mật khẩu."
         except Exception as e:
             return False, None, None, f"Lỗi kết nối: {e}"
-    
-    @staticmethod
-    def check_login(username, password):
-        """
-        Phương thức tổng hợp để kiểm tra đăng nhập, có thể từ sinh viên hoặc giáo viên
-        Trả về: (user_type, connection) hoặc None nếu thất bại
-        """
-        # Xử lý đúng số lượng giá trị trả về
-        try:
-            result_teacher = AuthLogin.verify_teacher(username, password)
-            if result_teacher[0]:  # success ở vị trí 0
-                return 'GV', result_teacher[1]  # connection ở vị trí 1
-            
-            result_student = AuthLogin.verify_student(username, password)
-            if result_student[0]:  # success ở vị trí 0
-                return 'SV', result_student[1]  # connection ở vị trí 1
-            
-            return None
-        except Exception as e:
-            print(f"Lỗi trong quá trình đăng nhập: {e}")
-            return None
-
