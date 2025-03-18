@@ -3,25 +3,23 @@ from Backend.database.connection import DatabaseConnection
 class AuthLogin:
     @staticmethod
     def verify_student(student_id, password):
+        cursor = DatabaseConnection.connection_admin().cursor()
         try:
-            cursor = DatabaseConnection.connection_admin().cursor()
             cursor.execute("{Call CheckSV (?, ?)}", (student_id, password))
             result = cursor.fetchone()
-            if not result:
-                return False, None, "Không tìm thấy thông tin sinh viên"
-            status = result[0]
-            if status == 1:
-                try:
-                    connect_sinh_vien = DatabaseConnection.connection_sv()
-                    return True, connect_sinh_vien, "Đăng nhập thành công"
-                except Exception as e:
-                    return False, None, f"Có lỗi từ Login SV: {e}"
-                finally:
-                    cursor.close()
-            else:
-                return False, None, "Đăng nhập không thành công. Vui lòng kiểm tra Mã sinh viên và mật khẩu."
+            if result is None:
+                return False, None, None, 'Vui lòng kiểm tra lại Mã Sinh viên và mật khẩu'
+            student_info = {
+                'MaSV' : result[0],
+                'Ten' : result[1]
+            }
+            connection_sv = DatabaseConnection.connection_sv()
+            if connection_sv:
+                return True, connection_sv, student_info, 'Đăng nhập thành công'
         except Exception as e:
-            return False, None, f"Lỗi khi xác thực: {e}"
+            return False, None, None, 'Đăng nhập không thành công có lỗi đến từ Server'
+        finally:
+            cursor.close()
 
     @staticmethod
     def get_login_info(username):
@@ -49,7 +47,6 @@ class AuthLogin:
         login_info = AuthLogin.get_login_info(username)
         if not login_info:
             return False, None, None, "Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản và mật khẩu."
-        
         try:
             connect_login = DatabaseConnection.connection_gv(username, password)
             if connect_login:
