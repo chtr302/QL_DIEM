@@ -4,7 +4,7 @@ from PyQt6.QtCore import *
 from Backend.controllers.auth_login import AuthLogin
 
 
-class Login(QWidget):
+class Login(QMainWindow):
     login_success_signal = pyqtSignal(str, object, object)
     
     def __init__(self):
@@ -14,6 +14,9 @@ class Login(QWidget):
         # self.setGeometry(200,200,400,400)
         self.setStyleSheet("background-color: white;")
         self.setFixedSize(580,400)
+
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
         
         self.show_password = False
         self.user_type = "GV"
@@ -22,7 +25,7 @@ class Login(QWidget):
         self.main_content()
     
     def main_content(self):
-        main_layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout(self.centralWidget())
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(10)
 
@@ -88,6 +91,7 @@ class Login(QWidget):
         self.username_input = QLineEdit()
         self.username_input.setStyleSheet("background-color: white; border: 1px solid #ddd; padding: 5px;")
         self.username_input.setFixedHeight(30)
+        self.username_input.returnPressed.connect(self.login)
         grid_layout.addWidget(self.username_input, 0, 1)
 
         label_password = QLabel("Mật khẩu:")
@@ -98,6 +102,7 @@ class Login(QWidget):
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setStyleSheet("background-color: white; border: 1px solid #ddd; padding: 5px;")
         self.password_input.setFixedHeight(30)
+        self.password_input.returnPressed.connect(self.login)
         grid_layout.addWidget(self.password_input, 1, 1)
 
         checkbox_password = QCheckBox("Xem mật khẩu")
@@ -166,8 +171,21 @@ class Login(QWidget):
             self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
     
     def login(self):
-        username = self.username_input.text()
+        username = self.username_input.text().strip()
         password = self.password_input.text()
+
+        if not username:
+            QMessageBox.critical(self,'Lỗi đăng nhập','Vui lòng nhập tài khoản')
+            self.username_input.setFocus()
+            return
+        if not password:
+            QMessageBox.critical(self,'Lỗi đăng nhập','Vui lòng nhập mật khẩu')
+            self.password_input.setFocus()
+            return
+        
+        cursor = QApplication.overrideCursor()
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+
         try:
             if self.user_type == 'GV':
                 success, connection, user_info, message = AuthLogin.verify_teacher(username,password)
@@ -176,13 +194,17 @@ class Login(QWidget):
                 else:
                     QMessageBox.critical(self,'Lỗi đăng nhập', message)
             else:
-                success,connection, message = AuthLogin.verify_student(username,password)
+                success,connection, student_info, message = AuthLogin.verify_student(username,password)
                 if success:
-                    self.login_success_signal.emit('SV', connection, None)
+                    self.login_success_signal.emit('SV', connection, student_info)
                 else:
                     QMessageBox.critical(self,'Lỗi đăng nhập', message)
         except Exception as e:
             QMessageBox.critical(self,'Lỗi hệ thông',f'Có lỗi từ Server: {e}')
-       
+        finally:
+            QApplication.restoreOverrideCursor()
+            if cursor:
+                QApplication.setOverrideCursor(cursor)
+
     def exit_app(self):
         QApplication.quit()
