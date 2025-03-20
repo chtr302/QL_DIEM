@@ -33,7 +33,8 @@ class AuthLogin:
             login_info = {
                 'MaGV': result[0],
                 'HoTen': result[1],
-                'Role': result[2]
+                'Khoa': result[2],
+                'Role': result[3]
             }
             return login_info
         except Exception as e:
