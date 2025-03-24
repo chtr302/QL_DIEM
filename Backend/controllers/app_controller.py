@@ -61,5 +61,22 @@ class AppController(QMainWindow):
         except:
             pass
 
+    # def show_class_management(self):
+    #         # Tạo view
+    #         self.class_page = ClassManagementPage(connection=self.db_connection, 
+    #                                             user_info=self.user_info)
+            
+    #         # Tạo controller và liên kết với view
+    #         self.class_controller = ClassController(self.class_page, self.db_connection)
+            
+    #         # Liên kết view với controller
+    #         self.class_page.controller = self.class_controller
+            
+    #         # Khởi tạo controller với thông tin người dùng
+    #         self.class_controller.initialize(self.user_info)
+            
+    #         # Hiển thị view
+    #         self.class_page.show()
+
     def show(self):
         super().show()
