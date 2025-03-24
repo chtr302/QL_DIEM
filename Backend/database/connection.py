@@ -3,12 +3,13 @@ import pyodbc
 # Cấu hình Driver SQL Server
 DRIVER = 'ODBC Driver 18 for SQL Server'
 SERVER = 'localhost'
+DATABASE = 'QL_DIEM'
 
 class DatabaseConnection:
     # Hàm connection string
     @staticmethod
     def connection_string(login,password):
-        return f'DRIVER={DRIVER};SERVER={SERVER};UID={login};PWD={password};TrustServerCertificate=yes'
+        return f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={login};PWD={password};TrustServerCertificate=yes;'
     
     # Kết nối admin để gọi SP kiểm tra
     @staticmethod
