@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
-from Frontend.view.Manager.BasePage import BasePage
-import sys
+from Frontend.view.ClassPage.ClassManagement import ClassManagementPage
+from Backend.controllers.ClassPage.class_controller import ClassController
+from Backend.controllers.ClassPage.student_controller import StudentController
+
 
 IMG_PATH = 'Frontend/assets/image/ToolbarDisplay'
 
@@ -17,7 +19,7 @@ class Display(QMainWindow):
         self.user_info = user_info
         
         self.setWindowTitle('Quản lý điểm sinh viên')
-        self.setFixedSize(1800, 1000)
+        self.setFixedSize(1800, 1050)
 
         self.font = QFont()
         self.font.setPointSize(12)
@@ -46,10 +48,12 @@ class Display(QMainWindow):
         
         if user_type == 'GV' and user_info is not None:
             try:
-                self.setWindowTitle('Hệ thống Quản lý điểm Sinh viên - Giảng viên')
+                
                 if user_info['Role'] == 'KHOA':
-                    self.status_bar.showMessage(f'Mã giảng viên: {user_info["MaGV"]} | Họ và Tên: {user_info["HoTen"]} | Khoa: {user_info['Khoa']} | Quyền: {user_info["Role"]}')
+                    self.setWindowTitle(f'Hệ thống Quản lý điểm Sinh viên - Giảng viên - {user_info['TenKhoa']}')
+                    self.status_bar.showMessage(f'Mã giảng viên: {user_info["MaGV"]} | Họ và Tên: {user_info["HoTen"]} | Khoa: {user_info['TenKhoa']} | Quyền: {user_info["Role"]}')
                 elif user_info['Role'] == 'PGV':
+                    self.setWindowTitle('Hệ thống Quản lý điểm Sinh viên - Phòng giáo vụ')
                     self.status_bar.showMessage(f'Tài khoản: {user_info["MaGV"]} | Quyền: {user_info["Role"]}')
             except (KeyError, TypeError):
                 self.status_bar.showMessage('Đăng nhập với quyền Giảng viên')
@@ -63,6 +67,7 @@ class Display(QMainWindow):
             self.status_bar.showMessage('Chưa đăng nhập')
 
     def setup_ui(self):
+        self.setStyleSheet("background-color: white;")
         # Tạo QStackedWidget
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
@@ -89,18 +94,22 @@ class Display(QMainWindow):
         self.manage_toolbar.setStyleSheet(self.toolbar_style)
         # Cấu hình các nút trong QL
         self.manage_classes_action = self.manage_toolbar.addAction(QIcon(f"{IMG_PATH}/class.png"), "Lớp Học", lambda: self.show_page("manage_classes"))
-        self.manage_subjects_action = self.manage_toolbar.addAction(QIcon(f"{IMG_PATH}/subject.png"), "Môn Học", lambda: self.show_page("manage_subjects"))
+        if self.user_info.get('Role','') == 'PGV':
+            self.manage_subjects_action = self.manage_toolbar.addAction(QIcon(f"{IMG_PATH}/subject.png"), "Môn Học", lambda: self.show_page("manage_subjects"))
+            self.manage_subjects_action.setCheckable(True)
+            self.action_group.addAction(self.manage_subjects_action)
+
+
         self.manage_credit_classes_action = self.manage_toolbar.addAction(QIcon(f"{IMG_PATH}/cc.png"), "Lớp Tín Chỉ", lambda: self.show_page("credit_classes"))
         self.enter_scores_action = self.manage_toolbar.addAction(QIcon(f"{IMG_PATH}/student.png"), "Nhập Điểm", lambda: self.show_page("enter_scores"))
         # Thêm vào Group và chỉ được 1 Action trong 1 thời điểm
-        self.manage_subjects_action.setCheckable(True)
         self.manage_classes_action.setCheckable(True)
         self.manage_credit_classes_action.setCheckable(True)
         self.enter_scores_action.setCheckable(True)
-        self.action_group.addAction(self.manage_subjects_action)
-        self.action_group.addAction(self.manage_classes_action)
+        
         self.action_group.addAction(self.manage_credit_classes_action)
         self.action_group.addAction(self.enter_scores_action)
+        self.action_group.addAction(self.manage_classes_action)
 
         # =================== Báo cáo ===================
         self.report_toolbar = QToolBar("Báo cáo", self)
@@ -191,17 +200,20 @@ class Display(QMainWindow):
         self.stacked_widget.addWidget(change_password_page)
 
     def create_teacher_pages(self):
-        # Trang Quản lý điểm
-        # manage_scores_page = ClassManagementPage()
-        # self.stacked_widget.addWidget(manage_scores_page)
-
-        # Trang Quản lý lớp
-        self.manage_classes_page = BasePage(
+        # Trang Quản lý 
+        self.class_controller = ClassController(connection=self.connection)
+        self.student_controller = StudentController(connection=self.connection)
+        self.manage_class_page = ClassManagementPage(
             parent=self,
             connection=self.connection,
             user_info=self.user_info,
+            controller= self.class_controller,
+            student_controller=self.student_controller
         )
-        self.stacked_widget.addWidget(self.manage_classes_page)
+        self.class_controller.set_view(self.manage_class_page)
+        self.class_controller.initialize_by_role()
+        self.student_controller.view = self.manage_class_page
+        self.stacked_widget.addWidget(self.manage_class_page)
 
         # Trang Quản lý sinh viên
         manage_students_page = QWidget()
@@ -236,24 +248,41 @@ class Display(QMainWindow):
 
     def show_page(self, page_name):
         if self.user_type == 'GV':
-            page_mapping = {
-                "manage_subjects": 0,
-                "manage_classes": 1,
-                "credit_classes": 2,
-                "enter_scoes": 3,
-                "stats_reports": 4,
-                "create_user": 5,
-                "change_password": 6
-            }
-            action_mapping = {
-                "manage_subjects": self.manage_subjects_action,
-                "manage_classes": self.manage_classes_action,
-                "credit_classes": self.manage_credit_classes_action,
-                "enter_scoes": self.enter_scores_action,
-                "stats_reports": self.stats_reports_action,
-                "create_user": self.create_user_action,
-                "change_password": self.change_password_action
-            }
+            if self.user_info['Role'] == 'PGV':
+                page_mapping = {
+                    "manage_subjects": 0,
+                    "manage_classes": 1,
+                    "credit_classes": 2,
+                    "enter_scoes": 3,
+                    "stats_reports": 4,
+                    "create_user": 5,
+                    "change_password": 6
+                }
+                action_mapping = {
+                    "manage_subjects": self.manage_subjects_action,
+                    "manage_classes": self.manage_classes_action,
+                    "credit_classes": self.manage_credit_classes_action,
+                    "enter_scoes": self.enter_scores_action,
+                    "stats_reports": self.stats_reports_action,
+                    "create_user": self.create_user_action,
+                    "change_password": self.change_password_action
+                }
+            else:
+                page_mapping = {
+                    'credit_classes': 0,
+                    'manage_classes': 1,
+                    'enter_score': 2,
+                    'stats_reports': 3,
+                    'create_user': 4,
+                    'change_password': 5
+                }
+                action_mapping = {
+                    'credit_classes': self.manage_credit_classes_action,
+                    'enter_score': self.enter_scores_action,
+                    'stats_reports': self.stats_reports_action,
+                    'create_user': self.create_user_action,
+                    'change_password': self.change_password_action
+                }
         elif self.user_type == 'SV':
             page_mapping = {
                 "view_scores": 0,
@@ -277,9 +306,3 @@ class Display(QMainWindow):
         self.logout_signal.emit()
         self.close()
     
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    mock_teacher_info = {'MaGV': 'Admin002', 'HoTen': 'Trần Công Hậu', 'Role': 'admin'}
-    display = Display('GV', None, mock_teacher_info)
-    display.show()
-    sys.exit(app.exec())
