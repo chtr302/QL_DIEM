@@ -1,0 +1,109 @@
+/* Main containers */
+#mainContainer {
+    background-color: #f5f5f5;
+}
+
+/* Department panel */
+#deptContainer {
+    background-color: white;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+}
+
+/* Class and student containers */
+#classContainer, #studentContainer {
+    background-color: white;
+    border: 1px solid #dddddd;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+/* Headers */
+.header-label {
+    font-weight: bold;
+    font-size: 18px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#dept-header {
+    color: #004d99;
+}
+
+#class-header {
+    color: #006600;
+}
+
+#student-header {
+    color: #990000;
+}
+
+/* Selection labels */
+#selected-dept-label, #selected-class-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #666666;
+    padding: 5px;
+    margin: 5px 0;
+}
+
+QComboBox QAbstractItemView::item {
+    color: #000000;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #add8e6;  /* Xanh nhạt khi hover */
+    color: #000000;  /* Vẫn giữ màu đen cho văn bản khi hover */
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background-color: #0078d7;  /* Màu nền khi item được chọn */
+    color: #ffffff;  /* Màu trắng cho văn bản khi item được chọn */
+}
+#gender-combo QAbstractItemView::item {
+    min-height: 24px;
+    padding-left: 5px;
+}
+
+/* Tables */
+QTableWidget {
+    border: none;
+    border-color: #dddddd;
+}
+
+QTableWidget::item {
+    padding: 4px;
+}
+
+QTableWidget::item:selected {
+    background-color: #e6f2ff;
+    color: #000000;
+}
+
+/* Form elements */
+QLineEdit, QComboBox {
+    padding: 5px;
+    border: 1px solid #cccccc;
+    border-radius: 3px;
+}
+
+QPushButton {
+    padding: 5px 15px;
+    border: 1px solid #cccccc;
+    border-radius: 3px;
+    background-color: #f0f0f0;
+}
+
+QPushButton:hover {
+    background-color: #e0e0e0;
+}
+
+QGroupBox {
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    margin-top: 15px;
+}
+
+QGroupBox::title {
+    background-color: white;
+}
