@@ -18,8 +18,6 @@ class BasePage(QWidget):
         self.main_layout = QVBoxLayout(self)
         self.setLayout(self.main_layout)
 
-        self.create_toolbar()
-
     def create_toolbar(self):
         self.action_group = QActionGroup(self)
         self.action_group.setExclusive(True)

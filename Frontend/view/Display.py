@@ -17,9 +17,6 @@ class Display(QMainWindow):
         self.user_type = user_type
         self.connection = connection
         self.user_info = user_info
-        
-        self.setWindowTitle('Quản lý điểm sinh viên')
-        self.setFixedSize(1800, 1050)
 
         self.font = QFont()
         self.font.setPointSize(12)
@@ -52,9 +49,11 @@ class Display(QMainWindow):
                 if user_info['Role'] == 'KHOA':
                     self.setWindowTitle(f'Hệ thống Quản lý điểm Sinh viên - Giảng viên - {user_info['TenKhoa']}')
                     self.status_bar.showMessage(f'Mã giảng viên: {user_info["MaGV"]} | Họ và Tên: {user_info["HoTen"]} | Khoa: {user_info['TenKhoa']} | Quyền: {user_info["Role"]}')
+                    self.setFixedSize(1800, 1050)
                 elif user_info['Role'] == 'PGV':
                     self.setWindowTitle('Hệ thống Quản lý điểm Sinh viên - Phòng giáo vụ')
                     self.status_bar.showMessage(f'Tài khoản: {user_info["MaGV"]} | Quyền: {user_info["Role"]}')
+                    self.setFixedSize(1800, 1100)
             except (KeyError, TypeError):
                 self.status_bar.showMessage('Đăng nhập với quyền Giảng viên')
         elif user_type == 'SV' and user_info is not None:
@@ -202,7 +201,7 @@ class Display(QMainWindow):
     def create_teacher_pages(self):
         # Trang Quản lý 
         self.class_controller = ClassController(connection=self.connection)
-        self.student_controller = StudentController(connection=self.connection)
+        self.student_controller = StudentController(connection=self.connection, class_controller=self.class_controller)
         self.manage_class_page = ClassManagementPage(
             parent=self,
             connection=self.connection,
@@ -250,8 +249,8 @@ class Display(QMainWindow):
         if self.user_type == 'GV':
             if self.user_info['Role'] == 'PGV':
                 page_mapping = {
-                    "manage_subjects": 0,
-                    "manage_classes": 1,
+                    "manage_classes": 0,
+                    "manage_subjects": 1,
                     "credit_classes": 2,
                     "enter_scoes": 3,
                     "stats_reports": 4,
@@ -259,8 +258,8 @@ class Display(QMainWindow):
                     "change_password": 6
                 }
                 action_mapping = {
-                    "manage_subjects": self.manage_subjects_action,
                     "manage_classes": self.manage_classes_action,
+                    "manage_subjects": self.manage_subjects_action,
                     "credit_classes": self.manage_credit_classes_action,
                     "enter_scoes": self.enter_scores_action,
                     "stats_reports": self.stats_reports_action,
@@ -269,14 +268,15 @@ class Display(QMainWindow):
                 }
             else:
                 page_mapping = {
-                    'credit_classes': 0,
-                    'manage_classes': 1,
+                    'manage_classes': 0,
+                    'credit_classes': 1,
                     'enter_score': 2,
                     'stats_reports': 3,
                     'create_user': 4,
                     'change_password': 5
                 }
                 action_mapping = {
+                    'manage_classes': self.manage_classes_action,
                     'credit_classes': self.manage_credit_classes_action,
                     'enter_score': self.enter_scores_action,
                     'stats_reports': self.stats_reports_action,
